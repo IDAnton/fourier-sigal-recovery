@@ -22,6 +22,7 @@ class FourierFilter:
         else:
             self.signals_params = signal
         self.init_signal()
+        self.filter_signal()
 
     def init_signal(self):    
         self.global_time = 1
@@ -61,20 +62,22 @@ class FourierFilter:
         self.recovered = np.append(old_recovered[1:], self.recovered[-1:])
 
     def random(self):
-        self.signals_params = [[[], [], []] for _ in range(3)]
+        self.signals_params = [ [[], [], []] for _ in range(3)]
         for i in range(3):
             self.signals_params[i][0] = random.randint(0, 10)
             self.signals_params[i][1] = random.randint(0, 10)
             self.signals_params[i][2] = random.random() * np.pi
             self.noise_amp = random.randint(0, 10)
 
+    def set(self): #for tests
+        self.filter_signal()
 
 
-class Plotter(FigureCanvas, anim.FuncAnimation):
+class FFPlotter(FigureCanvas, anim.FuncAnimation):
     def __init__(self, ff:FourierFilter):
         self.ff = ff
         FigureCanvas.__init__(self, mpl_fig.Figure())
-        self.ax = self.figure.subplots(nrows=3)
+        self.plot = self.figure.subplots(nrows=3)
         self.figure.tight_layout() 
         self.active = False
         self.need_update = True
@@ -91,37 +94,37 @@ class Plotter(FigureCanvas, anim.FuncAnimation):
 
     def plot_signal(self):
         x = np.linspace(0, 1, num=self.ff.ndots)
-        self.signal_line, = self.ax[0].plot(x, self.ff.signal, 'tab:orange', label='Signal')
-        self.noisy_signal_line, = self.ax[0].plot(x, self.ff.noisy_signal, 'tab:blue', label='Noisy signal')
-        self.ax[0].set_xlabel('time, s')
+        self.signal_line, = self.plot[0].plot(x, self.ff.signal, 'tab:orange', label='Signal')
+        self.noisy_signal_line, = self.plot[0].plot(x, self.ff.noisy_signal, 'tab:blue', label='Noisy signal')
+        self.plot[0].set_xlabel('time, s')
 
     def plot_freqs(self):
         x1, x2, y1, y2 = self.get_freqs_data()
-        self.freqs_line1 = self.ax[1].scatter(x1, y1, color='tab:orange', label='Filtered out')
-        self.freqs_line2 = self.ax[1].scatter(x2, y2, color='tab:blue')
-        self.ax[1].set_xlabel('freqs, Hz')
+        self.freqs_line1 = self.plot[1].scatter(x1, y1, color='tab:orange', label='Filtered out')
+        self.freqs_line2 = self.plot[1].scatter(x2, y2, color='tab:blue')
+        self.plot[1].set_xlabel('freqs, Hz')
 
     def plot_recover(self):
         x = np.linspace(0, 1, num=self.ff.ndots)
-        self.signal_line2, = self.ax[2].plot(x, self.ff.signal, 'tab:orange', label='Signal')
-        self.recovered_line, = self.ax[2].plot(x, self.ff.recovered, label='Recovered signal')
-        self.ax[2].set_xlabel('time, s')
+        self.signal_line2, = self.plot[2].plot(x, self.ff.signal, 'tab:orange', label='Signal')
+        self.recovered_line, = self.plot[2].plot(x, self.ff.recovered, label='Recovered signal')
+        self.plot[2].set_xlabel('time, s')
     
     def add_grid(self):
         for i in range(3):
-            self.ax[i].grid(b=True, which='major', color='#666666', linestyle='-')
-            self.ax[i].minorticks_on()
-            self.ax[i].grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
-            self.ax[i].legend(loc = 2)
+            self.plot[i].grid(b=True, which='major', color='#666666', linestyle='-')
+            self.plot[i].minorticks_on()
+            self.plot[i].grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+            self.plot[i].legend(loc = 2)
         
     def set_limits(self):
         signal_limit = self.ff.noise_amp
         for signal in self.ff.signals_params:
             signal_limit += signal[0]
-        self.ax[0].set_ylim(-signal_limit, signal_limit)
-        self.ax[2].set_ylim(-signal_limit, signal_limit)
-        self.ax[1].set_ylim(0, 1.5*max(self.ff.power))
-        self.ax[1].set_xlim(0, len(self.ff.power))
+        self.plot[0].set_ylim(-signal_limit, signal_limit)
+        self.plot[2].set_ylim(-signal_limit, signal_limit)
+        self.plot[1].set_ylim(0, 1.5*max(self.ff.power))
+        self.plot[1].set_xlim(0, len(self.ff.power))
         if self.redraw:
             self.draw()
 
@@ -230,7 +233,7 @@ class Gui(QMainWindow):
         save_button.clicked.connect(self.save)
         grid.addWidget(save_button, 8, 1, 1, 2)
  
-        self.plotter = Plotter(ff=self.ff)
+        self.plotter = FFPlotter(ff=self.ff)
         self.plotter.setFixedHeight(height)
         layout.addWidget(self.plotter, 2, Qt.AlignLeft)
         right_layout.setSpacing(20)
