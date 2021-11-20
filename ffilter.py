@@ -73,87 +73,87 @@ class FourierFilter:
         self.filter_signal()
 
 
-class FFPlotter(FigureCanvas, anim.FuncAnimation):
-    def __init__(self, ff:FourierFilter):
-        self.ff = ff
-        FigureCanvas.__init__(self, mpl_fig.Figure())
-        self.plot = self.figure.subplots(nrows=3)
-        self.figure.tight_layout() 
-        self.active = False
-        self.need_update = True
-        self.redraw = False
-        self.init_graphs()
-        self.set_limits()
-        anim.FuncAnimation.__init__(self, self.figure, self._update_canvas_, interval=20, blit=True)
+# class FFPlotter(FigureCanvas, anim.FuncAnimation):
+#     def __init__(self, ff:FourierFilter):
+#         self.ff = ff
+#         FigureCanvas.__init__(self, mpl_fig.Figure())
+#         self.plot = self.figure.subplots(nrows=3)
+#         self.figure.tight_layout() 
+#         self.active = False
+#         self.need_update = True
+#         self.redraw = False
+#         self.init_graphs()
+#         self.set_limits()
+#         anim.FuncAnimation.__init__(self, self.figure, self._update_canvas_, interval=20, blit=True)
 
-    def init_graphs(self):
-        self.plot_signal()
-        self.plot_freqs()
-        self.plot_recover()
-        self.add_grid()
+#     def init_graphs(self):
+#         self.plot_signal()
+#         self.plot_freqs()
+#         self.plot_recover()
+#         self.add_grid()
 
-    def plot_signal(self):
-        x = np.linspace(0, 1, num=self.ff.ndots)
-        self.signal_line, = self.plot[0].plot(x, self.ff.signal, 'tab:orange', label='Signal')
-        self.noisy_signal_line, = self.plot[0].plot(x, self.ff.noisy_signal, 'tab:blue', label='Noisy signal')
-        self.plot[0].set_xlabel('time, s')
+#     def plot_signal(self):
+#         x = np.linspace(0, 1, num=self.ff.ndots)
+#         self.signal_line, = self.plot[0].plot(x, self.ff.signal, 'tab:orange', label='Signal')
+#         self.noisy_signal_line, = self.plot[0].plot(x, self.ff.noisy_signal, 'tab:blue', label='Noisy signal')
+#         self.plot[0].set_xlabel('time, s')
 
-    def plot_freqs(self):
-        x1, x2, y1, y2 = self.get_freqs_data()
-        self.freqs_line1 = self.plot[1].scatter(x1, y1, color='tab:orange', label='Filtered out')
-        self.freqs_line2 = self.plot[1].scatter(x2, y2, color='tab:blue')
-        self.plot[1].set_xlabel('freqs, Hz')
+#     def plot_freqs(self):
+#         x1, x2, y1, y2 = self.get_freqs_data()
+#         self.freqs_line1 = self.plot[1].scatter(x1, y1, color='tab:orange', label='Filtered out')
+#         self.freqs_line2 = self.plot[1].scatter(x2, y2, color='tab:blue')
+#         self.plot[1].set_xlabel('freqs, Hz')
 
-    def plot_recover(self):
-        x = np.linspace(0, 1, num=self.ff.ndots)
-        self.signal_line2, = self.plot[2].plot(x, self.ff.signal, 'tab:orange', label='Signal')
-        self.recovered_line, = self.plot[2].plot(x, self.ff.recovered, label='Recovered signal')
-        self.plot[2].set_xlabel('time, s')
+#     def plot_recover(self):
+#         x = np.linspace(0, 1, num=self.ff.ndots)
+#         self.signal_line2, = self.plot[2].plot(x, self.ff.signal, 'tab:orange', label='Signal')
+#         self.recovered_line, = self.plot[2].plot(x, self.ff.recovered, label='Recovered signal')
+#         self.plot[2].set_xlabel('time, s')
     
-    def add_grid(self):
-        for i in range(3):
-            self.plot[i].grid(b=True, which='major', color='#666666', linestyle='-')
-            self.plot[i].minorticks_on()
-            self.plot[i].grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
-            self.plot[i].legend(loc = 2)
+#     def add_grid(self):
+#         for i in range(3):
+#             self.plot[i].grid(b=True, which='major', color='#666666', linestyle='-')
+#             self.plot[i].minorticks_on()
+#             self.plot[i].grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+#             self.plot[i].legend(loc = 2)
         
-    def set_limits(self):
-        signal_limit = self.ff.noise_amp
-        for signal in self.ff.signals_params:
-            signal_limit += signal[0]
-        self.plot[0].set_ylim(-signal_limit, signal_limit)
-        self.plot[2].set_ylim(-signal_limit, signal_limit)
-        self.plot[1].set_ylim(0, 1.5*max(self.ff.power))
-        self.plot[1].set_xlim(0, len(self.ff.power))
-        if self.redraw:
-            self.draw()
+#     def set_limits(self):
+#         signal_limit = self.ff.noise_amp
+#         for signal in self.ff.signals_params:
+#             signal_limit += signal[0]
+#         self.plot[0].set_ylim(-signal_limit, signal_limit)
+#         self.plot[2].set_ylim(-signal_limit, signal_limit)
+#         self.plot[1].set_ylim(0, 1.5*max(self.ff.power))
+#         self.plot[1].set_xlim(0, len(self.ff.power))
+#         if self.redraw:
+#             self.draw()
 
-    def _update_canvas_(self, i):
-        if self.active or self.need_update:
-            if self.need_update:
-                self.set_limits()
-                self.need_update = False
-            self.ff.time_step()
-            x = np.linspace(0, 1, self.ff.ndots)
-            self.signal_line.set_data(x, self.ff.signal)
-            self.noisy_signal_line.set_data(x, self.ff.noisy_signal)
-            self.recovered_line.set_data(x, self.ff.recovered)
-            self.signal_line2.set_data(x, self.ff.signal)
-            x1, x2, y1, y2 = self.get_freqs_data()
-            self.freqs_line1.set_offsets (np.stack((x1, y1), axis=-1))
-            self.freqs_line2.set_offsets (np.stack((x2, y2), axis=-1))
-        return self.signal_line, self.noisy_signal_line, self.recovered_line, self.signal_line2, self.freqs_line1, self.freqs_line2
+#     def _update_canvas_(self, i):
+#         if self.active or self.need_update:
+#             if self.need_update:
+#                 self.set_limits()
+#                 self.need_update = False
+#             self.ff.time_step()
+#             x = np.linspace(0, 1, self.ff.ndots)
+#             self.signal_line.set_data(x, self.ff.signal)
+#             self.noisy_signal_line.set_data(x, self.ff.noisy_signal)
+#             self.recovered_line.set_data(x, self.ff.recovered)
+#             self.signal_line2.set_data(x, self.ff.signal)
+#             x1, x2, y1, y2 = self.get_freqs_data()
+#             self.freqs_line1.set_offsets (np.stack((x1, y1), axis=-1))
+#             self.freqs_line2.set_offsets (np.stack((x2, y2), axis=-1))
+#         return self.signal_line, self.noisy_signal_line, self.recovered_line, self.signal_line2, self.freqs_line1, self.freqs_line2
 
-    def get_freqs_data(self):
-        x = np.linspace(0, int(self.ff.ndots/2), num=int(self.ff.ndots/2)+1)
-        x1 = x[self.ff.mask==True]
-        y1 = self.ff.power[self.ff.mask==True]
-        x2 = x[self.ff.mask==False]
-        y2 = self.ff.power[self.ff.mask==False]
-        return x1, x2, y1, y2
+#     def get_freqs_data(self):
+#         x = np.linspace(0, int(self.ff.ndots/2), num=int(self.ff.ndots/2)+1)
+#         x1 = x[self.ff.mask==True]
+#         y1 = self.ff.power[self.ff.mask==True]
+#         x2 = x[self.ff.mask==False]
+#         y2 = self.ff.power[self.ff.mask==False]
+#         return x1, x2, y1, y2
     
-    def set_redraw(self, state):
-        self.redraw = state
+#     def set_redraw(self, state):
+#         self.redraw = state
     
 
 # class Gui(QMainWindow):
