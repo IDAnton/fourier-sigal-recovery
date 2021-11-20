@@ -8,7 +8,7 @@ import random
 # QLineEdit, QGridLayout, QLabel, QCheckBox, QVBoxLayout, QWidget, QSlider, QMessageBox
 # from PyQt5.QtGui import QPixmap, QDoubleValidator, QPalette, QColor
 # from PyQt5.QtCore import Qt, QLocale
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+#from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from math import pi
 from scipy.fft import rfft, irfft, rfftfreq
 
